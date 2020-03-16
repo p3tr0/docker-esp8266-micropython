@@ -1,14 +1,12 @@
 #!/bin/bash
 
-VENDOR_DIR="./vendor"
 SERIAL_PORT=${SERIAL_PORT:-"/dev/tty.SLAB_USBtoUART"}
 BIN_FILENAME=${BIN_FILENAME:-"firmware-combined.bin"}
 
-
 build_docker() {
   docker build -t micropython .
-  result=$(docker container inspect micropython)
-  if [ -z "$result" ]; then
+  result=$(docker container inspect micropython 2>/dev/null)
+  if [ "$result" == "[]" ]; then
     docker create --name micropython micropython
   fi
   
@@ -32,7 +30,7 @@ connect() {
 
 copy_firmware() {
   echo "Copying firmware to current directory: $(pwd)/${BIN_FILENAME}"
-  docker cp micropython:/micropython/esp8266/build/${BIN_FILENAME} .
+  docker cp micropython:/micropython/ports/esp8266/build-GENERIC/${BIN_FILENAME} .
 }
 
 erase_flash() {

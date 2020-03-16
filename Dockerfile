@@ -50,7 +50,7 @@ ENV PATH=/esp-open-sdk/xtensa-lx106-elf/bin:$PATH
 
 USER root
 
-RUN cd /micropython/ports/unix && make axtls && make
+RUN cd /micropython && make -C mpy-cross && cd ports/unix && make axtls && make
 
 ADD docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh \

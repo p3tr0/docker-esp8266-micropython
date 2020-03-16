@@ -1,8 +1,7 @@
 #!/bin/bash
 
 build_firmware() {
-  cd /micropython && make -C mpy-cross/ V=1
-  cd ports/esp8266 && make V=1
+  cd /micropython/ports/esp8266 && make V=1
 }
 
 
