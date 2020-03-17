@@ -1,6 +1,5 @@
 #### enqack/esp8266-micropython
 FROM phusion/baseimage:0.9.19
-ARG VERSION=master
 
 RUN apt-get update \
     && apt-get install -y \
@@ -38,9 +37,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --no-create-home micropython \
     && git clone --recursive https://github.com/pfalcon/esp-open-sdk.git \
-    && git clone https://github.com/micropython/micropython.git \
-    && cd micropython && git checkout $VERSION && git submodule update --init \
-    && chown -R micropython:micropython ../esp-open-sdk ../micropython
+    && chown -R micropython:micropython esp-open-sdk
 
 USER micropython
 
@@ -50,11 +47,8 @@ ENV PATH=/esp-open-sdk/xtensa-lx106-elf/bin:$PATH
 
 USER root
 
-RUN cd /micropython && make -C mpy-cross && cd ports/unix && make axtls && make
-
 ADD docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh \
-    && /docker-entrypoint.sh build
+RUN chmod +x /docker-entrypoint.sh && /docker-entrypoint.sh
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 

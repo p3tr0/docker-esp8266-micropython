@@ -6,22 +6,37 @@ BIN_FILENAME=${BIN_FILENAME:-"firmware-combined.bin"}
 build_docker() {
   docker build -t micropython .
   result=$(docker container inspect micropython 2>/dev/null)
-  if [ "$result" == "[]" ]; then
+  if [[ $result == "[]" ]]; then
     docker create --name micropython micropython
   fi
-  
+}
+
+get_firmware() {
+  if [[ -d micropython ]]; then
+    echo "Directory 'micropython' exists, skip downloading"
+  else
+    git clone https://github.com/micropython/micropython.git micropython
+    pushd micropython
+    git checkout master
+    git submodule update --init
+    popd
+  fi
+}
+
+docker_run() {
+  docker run --rm -v $(pwd)/micropython:/micropython -it micropython $@
 }
 
 build_firmware() {
-  docker run --rm -it micropython
+  docker_run
 }
 
 manual_build() {
-  docker run --rm -it micropython /bin/bash -l
+  docker_run /bin/bash -l
 }
 
 unix() {
-  docker run --rm -it micropython unix
+  docker_run unix
 }
 
 connect() {
@@ -40,7 +55,7 @@ erase_flash() {
 
 inside_flash() {
   echo "Writing flash from within container:"
-  docker run --rm -it --device "$SERIAL_PORT" --user root --workdir /micropython/esp8266 micropython make PORT="$SERIAL_PORT" deploy
+  docker run --rm -it -v micropython:/micropython --device "$SERIAL_PORT" --user root --workdir /micropython/esp8266 micropython make PORT="$SERIAL_PORT" deploy
 }
 
 write_flash() {
@@ -52,6 +67,7 @@ write_flash() {
 
 case "$@" in
   "build")
+    get_firmware
     build_docker
     build_firmware
     ;;
@@ -83,5 +99,4 @@ case "$@" in
     build
     ;;
 esac
-
 
